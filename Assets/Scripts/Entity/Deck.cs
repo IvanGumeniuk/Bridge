@@ -3,32 +3,32 @@ using System.Collections.Generic;
 using UnityEngine;
 public class Deck 
 {
-    private Dictionary<int,Card> deck;
+    private Dictionary<IDType,Card> deck;
 
     public Deck(bool generateCards)
     {
-        deck = new Dictionary<int, Card>();
+        deck = new Dictionary<IDType, Card>();
         if(generateCards)
             GenerateDeck();
     }
 
-    public Deck(Dictionary<int, Card> cards)
+    public Deck(Dictionary<IDType, Card> cards)
     {
         deck = cards;
     }
 
-    public void AddCard(int cardIndex, Card card)
+    public void AddCard(IDType cardIndex, Card card)
     {
         if(deck == null)
-            deck = new Dictionary<int, Card>();
+            deck = new Dictionary<IDType, Card>();
         deck.Add(cardIndex,card);
     }
 
-    public Card GetCard(int index)
+    public Card GetCard(IDType index)
     {
         return deck[index];
     }
-
+/*
     public Card GetCard(IDType type)
     {
         Card card = null;
@@ -42,8 +42,8 @@ public class Deck
         }
         return card;
     }
-
-    public Dictionary<int, Card> GetCards()
+    */
+    public Dictionary<IDType, Card> GetCards()
     {
         return deck;
     }
@@ -64,7 +64,7 @@ public class Deck
             {
                 Card card = new Card((Suit)Enum.GetValues(typeof(Suit)).GetValue(suitIndex), (Name)Enum.GetValues(typeof(Name)).GetValue(nameIndex));
                 card.Identifier = new IDType(cardID);
-                deck.Add(cardID++, card);
+                deck.Add(new IDType(cardID++), card);
             }
         }
         GenerateCardPreferences();
@@ -72,9 +72,9 @@ public class Deck
 
     private void GenerateCardPreferences()
     {
-        for(int cardIndex=0; cardIndex < deck.Count; cardIndex++)
+        //for(int cardIndex=0; cardIndex < deck.Count; cardIndex++)
+        foreach(Card card in deck.Values)
         {
-            Card card = deck[cardIndex];
             switch(card.cardName)
             {
                 case Name.Six:

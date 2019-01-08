@@ -32,28 +32,25 @@ public class DeckController : MonoBehaviour {
     }
 
 
-    public void AddCard(int cardIndex, Card card)
+    public void AddCard(IDType cardKey, Card card)
     {
-        deck.AddCard(cardIndex, card);
+        deck.AddCard(cardKey, card);
     }
 
     public void AddCard(Card card)
     {
-        deck.AddCard(deck.GetCards().Count - 1, card);
+        deck.AddCard(new IDType(deck.GetCards().Count - 1), card);
     }
 
     public void RemoveCard(IDType id)
     {
-        for(int i = 0; i< deck.GetCards().Count; i++)
+        if(deck.GetCards().ContainsKey(id))
         {
-            if(deck.GetCards().ContainsKey(i))
-            {
-                if(deck.GetCards()[i].Identifier.ID == id.ID)
-                {
-                    deck.GetCards().Remove(i);
-                    break;
-                }
-            }
+            deck.GetCards().Remove(id);
+        }
+        else
+        {
+            Debug.Log("Wrong removing ID: " + id);
         }
     }
 
