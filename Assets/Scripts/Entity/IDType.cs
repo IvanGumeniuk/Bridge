@@ -19,7 +19,6 @@ public class IDType
 
     public override bool Equals(object obj)
     {
-        Debug.Log(obj.GetHashCode() + "   " + GetHashCode());
         if(obj.GetHashCode() == GetHashCode())
             return true;
         return false;

@@ -26,9 +26,18 @@ public class DeckController : MonoBehaviour {
     public Card GetCard(IDType id)
     {
         Card card = deck.GetCard(id);
-        /*if(card == null)
-            Debug.Log("NUll ID: " + id.ID);*/
         return card;
+    }
+
+    public Card GetTopCard()
+    {
+        if(transform.childCount == 0)
+        {
+            Debug.Log("No avaliable children");
+            return null;
+        }
+
+        return transform.GetChild(transform.childCount - 1).GetComponent<Card>();
     }
 
 
@@ -59,9 +68,4 @@ public class DeckController : MonoBehaviour {
         GameController.Instance.OnCardClick(id);
     }
 
-	
-	// Update is called once per frame
-	void Update () {
-		
-	}
 }

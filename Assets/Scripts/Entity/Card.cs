@@ -50,7 +50,7 @@ public class Card : MonoBehaviour
     {
         cardPreferences.AddRange(preferences);
     }
-
+    
     public Card(Suit cardSuit, Name cardName)
     {
         this.cardSuit = cardSuit;

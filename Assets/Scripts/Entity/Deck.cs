@@ -28,21 +28,8 @@ public class Deck
     {
         return deck[index];
     }
-/*
-    public Card GetCard(IDType type)
-    {
-        Card card = null;
-        foreach(var c in deck.Values)
-        {
-            if(c.Identifier.ID == type.ID)
-            {
-                card = c;
-                break;
-            }
-        }
-        return card;
-    }
-    */
+
+
     public Dictionary<IDType, Card> GetCards()
     {
         return deck;
