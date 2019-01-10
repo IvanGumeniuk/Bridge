@@ -6,6 +6,7 @@ public class GameController : Singleton<GameController> {
     
     public DeckController mainDeckController;
     public DeckController workingDeckController;
+    public DeckController playerDeckController;
 
     public Deck mainDeck { get; private set; }
 
@@ -32,9 +33,21 @@ public class GameController : Singleton<GameController> {
     }
 
 
-    public void OnCardClick(IDType id)
+    public void OnCardClick(IDType id, DeckController cardOwner)
     {
-        MoveCard(mainDeckController, workingDeckController, id);
+        DeckController targetDeck;
+        DetermineTargetDeck(cardOwner, out targetDeck);
+        
+        if(targetDeck.IsEmpty() || targetDeck == playerDeckController)
+         {
+             MoveCard(cardOwner, targetDeck, id);
+             return;
+         }
+
+         if(CanCoverCard(cardOwner.GetCard(id), targetDeck.GetTopCard()))
+             MoveCard(cardOwner, targetDeck, id);
+         else
+             Debug.Log("Card can`t be covered");
     }
 
     public void GetTopCard()
@@ -50,4 +63,39 @@ public class GameController : Singleton<GameController> {
         UIController.Instance.RemoveCard(fromDeck, id);
     }
 
+    private bool CanCoverCard(Card coverer, Card willCovered)
+    {
+        return coverer.cardSuit == willCovered.cardSuit;
+
+       /* if(willCovered.GetPreferences().Contains(Preference.None))
+            return IsSuitEqual(coverer, willCovered);
+
+        if(willCovered.GetPreferences().Contains(Preference.)*/
+    }
+
+    private bool IsSuitEqual(Card firstCard, Card secondCard)
+    {
+        return firstCard.cardSuit == secondCard.cardSuit;
+    }
+
+    private void DetermineTargetDeck(DeckController controller, out DeckController targetController)
+    {
+        switch(controller.owner)
+        {
+            case DeckOwner.Main:
+                targetController = playerDeckController;
+                break;
+            case DeckOwner.Player:
+                targetController = workingDeckController;
+                break;
+            case DeckOwner.Working:
+                targetController = mainDeckController;
+                break;
+            default:
+                Debug.Log("Deck controller is not setted");
+                targetController = null;
+                break;
+        }
+    }
+    
 }

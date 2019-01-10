@@ -1,11 +1,10 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Linq;
 using UnityEngine;
 
 public class DeckController : MonoBehaviour {
 
     public Deck deck { get; set; }
+    public DeckOwner owner;
 
     private void Awake()
     {
@@ -48,7 +47,7 @@ public class DeckController : MonoBehaviour {
 
     public void AddCard(Card card)
     {
-        deck.AddCard(new IDType(deck.GetCards().Count - 1), card);
+        deck.AddCard(card.Identifier, card);
     }
 
     public void RemoveCard(IDType id)
@@ -65,7 +64,12 @@ public class DeckController : MonoBehaviour {
 
     public void OnCardClick(IDType id)
     { 
-        GameController.Instance.OnCardClick(id);
+        GameController.Instance.OnCardClick(id, this);
+    }
+
+    public bool IsEmpty()
+    {
+        return deck.GetCards().Count == 0;
     }
 
 }

@@ -18,12 +18,6 @@ public class CardIDObserver : MonoBehaviour {
 	
     public void OnCardClick()
     {
-        if(cardID == null)
-        {
-            Debug.Log("NULYARA");
-            return;
-        }
-
         deckController.OnCardClick(cardID);
     }
 }
