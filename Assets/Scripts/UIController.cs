@@ -6,6 +6,40 @@ using UnityEngine.UI;
 public class UIController : Singleton<UIController> {
 
     public GameObject cardPrefab;
+    public GameObject TrumpSuit;
+    public Image trumpSuitMini;
+    public Toggle toFirst;
+    public bool MiniTrumpSuitActive
+    {
+        get
+        {
+            return trumpSuitMini.enabled;
+        }
+    }
+
+    private void Start()
+    {
+        ChangeEnableStateTrumpWindow(false);
+        ChangeEnableStateMiniTrumpWindow(false);
+    }
+
+    public void ChangeEnableStateTrumpWindow(bool enableState)
+    {
+        TrumpSuit.SetActive(enableState);
+    }
+
+    public void ChangeEnableStateMiniTrumpWindow(bool enableState)
+    {
+        trumpSuitMini.enabled = enableState;
+    }
+
+    public void OnTrumpSuitChanged(int suitIndex)
+    {
+        GameController.Instance.SetSuit((Suit)suitIndex);
+        trumpSuitMini.sprite = Resources.Load<Sprite>("Suits/" + (Suit)suitIndex);
+
+        ChangeEnableStateTrumpWindow(false);
+    }
 
     public void InitializeCardsUI(DeckController controller, Deck deck)
     {
@@ -46,5 +80,10 @@ public class UIController : Singleton<UIController> {
         cardComponent.AddReferenceRange(card.GetPreferences());
         cardObject.GetComponent<Image>().sprite = Resources.Load<Sprite>("Cards/" + card.cardName + card.cardSuit.ToString());
         cardObject.GetComponent<CardIDObserver>().InitializeDeckController(deckController);
+    }
+
+    public bool ToFirst()
+    {
+        return toFirst.isOn;
     }
 }

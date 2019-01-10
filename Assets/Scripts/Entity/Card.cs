@@ -42,6 +42,11 @@ public class Card : MonoBehaviour
         return cardPreferences;
     }
 
+    public bool HasPreference(Preference preference)
+    {
+        return GetPreferences().Contains(preference);
+    }
+
     public void AddReference(Preference preference)
     {
         cardPreferences.Add(preference);

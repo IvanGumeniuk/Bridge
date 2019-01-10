@@ -2,14 +2,20 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class GameController : Singleton<GameController> {
-    
+public class GameController : Singleton<GameController>
+{
     public DeckController mainDeckController;
     public DeckController workingDeckController;
-    public DeckController playerDeckController;
+    public DeckController firstPlayerDeckController;
+    public DeckController secondPlayerDeckController;
+
+    private Player first;
+    private Player second;
 
     public Deck mainDeck { get; private set; }
 
+    [SerializeField]
+    private Suit trumpSuit;
 
     private void Awake()
     {
@@ -17,8 +23,16 @@ public class GameController : Singleton<GameController> {
     }
 
     // Use this for initialization
-    void Start () {
+    void Start()
+    {
         mainDeckController.deck = mainDeck;
+
+        first = firstPlayerDeckController.transform.GetComponent<Player>();
+        second = secondPlayerDeckController.transform.GetComponent<Player>();
+        first.IsMoving = true;
+
+        Generate();
+        Shuffle(mainDeckController);
     }
 
     public void Generate()
@@ -35,19 +49,71 @@ public class GameController : Singleton<GameController> {
 
     public void OnCardClick(IDType id, DeckController cardOwner)
     {
+        Player current = cardOwner.transform.GetComponent<Player>();
+        if(current != null)
+        {
+            if(!current.IsMoving)
+                return;
+        }
+
         DeckController targetDeck;
         DetermineTargetDeck(cardOwner, out targetDeck);
-        
-        if(targetDeck.IsEmpty() || targetDeck == playerDeckController)
-         {
-             MoveCard(cardOwner, targetDeck, id);
-             return;
-         }
 
-         if(CanCoverCard(cardOwner.GetCard(id), targetDeck.GetTopCard()))
-             MoveCard(cardOwner, targetDeck, id);
-         else
-             Debug.Log("Card can`t be covered");
+        if(targetDeck.IsEmpty() || cardOwner.owner == DeckOwner.Main)
+        {
+            MoveCard(cardOwner, targetDeck, id);
+            if(NeedChangeTrumpSuit(targetDeck.GetTopCard(), targetDeck))
+            {
+                ShowSuits();
+            }
+            return;
+        }
+
+        if(CanCoverCard(cardOwner.GetCard(id), targetDeck.GetTopCard()))
+        {
+            MoveCard(cardOwner, targetDeck, id);
+
+            //changing suit
+            if(NeedChangeTrumpSuit(targetDeck.GetTopCard(), targetDeck))
+            {
+                ShowSuits();
+                return;
+            }
+            else
+            {
+                if(UIController.Instance.MiniTrumpSuitActive)
+                    UIController.Instance.ChangeEnableStateMiniTrumpWindow(false);
+            }
+
+
+            if(targetDeck.GetTopCard().HasPreference(Preference.None))
+                EndMove();
+        }
+        else
+            Debug.Log("Card can`t be covered");
+    }
+
+    private bool NeedChangeTrumpSuit(Card card, DeckController targetDeck)
+    {
+        return card.HasPreference(Preference.SetMainSuit) && targetDeck.owner == DeckOwner.Working;
+    }
+
+    public void SetSuit(Suit suit)
+    {
+        trumpSuit = suit;
+        EndMove();
+    }
+
+    private void ShowSuits()
+    {
+        UIController.Instance.ChangeEnableStateTrumpWindow(true);
+        UIController.Instance.ChangeEnableStateMiniTrumpWindow(true);
+    }
+
+    private void EndMove()
+    {
+        first.IsMoving = !first.IsMoving;
+        second.IsMoving = !second.IsMoving;
     }
 
     public void GetTopCard()
@@ -65,12 +131,13 @@ public class GameController : Singleton<GameController> {
 
     private bool CanCoverCard(Card coverer, Card willCovered)
     {
-//        return coverer.cardSuit == willCovered.cardSuit;
-
-        if(willCovered.GetPreferences().Contains(Preference.CoverAnyCard))
+        if(coverer.HasPreference(Preference.OnAnyCard))
             return true;
 
-        if(coverer.GetPreferences().Contains(Preference.OnAnyCard))
+        if(willCovered.HasPreference(Preference.SetMainSuit))
+            return coverer.cardSuit == trumpSuit;
+
+        if(willCovered.HasPreference(Preference.CoverAnyCard))
             return true;
 
         if(IsSuitEqual(coverer, willCovered))
@@ -97,7 +164,10 @@ public class GameController : Singleton<GameController> {
         switch(controller.owner)
         {
             case DeckOwner.Main:
-                targetController = playerDeckController;
+                if(UIController.Instance.ToFirst())
+                    targetController = firstPlayerDeckController;
+                else
+                    targetController = secondPlayerDeckController;
                 break;
             case DeckOwner.Player:
                 targetController = workingDeckController;
@@ -111,5 +181,5 @@ public class GameController : Singleton<GameController> {
                 break;
         }
     }
-    
+
 }

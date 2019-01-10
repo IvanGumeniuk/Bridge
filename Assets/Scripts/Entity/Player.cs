@@ -1,9 +1,9 @@
 ﻿using System.Collections.Generic;
-public class Player
+using UnityEngine;
+public class Player : MonoBehaviour
 {
-    public string Name { get; set; }
-    public int Score { get; set; }
-
-    public Dictionary<Name, Card> cards = new Dictionary<Name, Card>();
+    public bool IsMoving = false;
+    public string Name;// { get; set; }
+    public int Score;// { get; set; }
 }
 

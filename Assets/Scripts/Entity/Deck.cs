@@ -69,10 +69,12 @@ public class Deck
                     card.cardPoints = Points.Zero;
                     break;
                 case Name.Seven:
+                    card.AddReference(Preference.None);
                     card.AddReference(Preference.TakeTwo);
                     card.cardPoints = Points.Zero;
                     break;
                 case Name.Eigth:
+                    card.AddReference(Preference.None);
                     card.AddReference(Preference.TakeOne);
                     card.AddReference(Preference.SkipMove);
                     card.cardPoints = Points.Zero;
@@ -82,12 +84,14 @@ public class Deck
                     card.cardPoints = Points.Zero;
                     break;
                 case Name.Jack:
+                    card.AddReference(Preference.None);
                     card.AddReference(Preference.OnAnyCard);
                     card.AddReference(Preference.SetMainSuit);
                     card.AddReference(Preference.MultiplyScore);
                     card.cardPoints = Points.TwentyFive;
                     break;
                 case Name.Ace:
+                    card.AddReference(Preference.None);
                     card.AddReference(Preference.SkipMove);
                     card.cardPoints = Points.Fifteen;
                     break;
