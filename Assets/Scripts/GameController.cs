@@ -65,17 +65,31 @@ public class GameController : Singleton<GameController> {
 
     private bool CanCoverCard(Card coverer, Card willCovered)
     {
-        return coverer.cardSuit == willCovered.cardSuit;
+//        return coverer.cardSuit == willCovered.cardSuit;
 
-       /* if(willCovered.GetPreferences().Contains(Preference.None))
-            return IsSuitEqual(coverer, willCovered);
+        if(willCovered.GetPreferences().Contains(Preference.CoverAnyCard))
+            return true;
 
-        if(willCovered.GetPreferences().Contains(Preference.)*/
+        if(coverer.GetPreferences().Contains(Preference.OnAnyCard))
+            return true;
+
+        if(IsSuitEqual(coverer, willCovered))
+            return true;
+
+        if(IsNameEqual(coverer, willCovered))
+            return true;
+
+        return false;
     }
 
     private bool IsSuitEqual(Card firstCard, Card secondCard)
     {
         return firstCard.cardSuit == secondCard.cardSuit;
+    }
+
+    private bool IsNameEqual(Card firstCard, Card secondCard)
+    {
+        return firstCard.cardName == secondCard.cardName;
     }
 
     private void DetermineTargetDeck(DeckController controller, out DeckController targetController)
