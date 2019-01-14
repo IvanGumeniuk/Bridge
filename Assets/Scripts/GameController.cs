@@ -6,6 +6,7 @@ public class GameController : Singleton<GameController>
 {
     public DeckController mainDeckController;
     public DeckController workingDeckController;
+    
     public DeckController firstPlayerDeckController;
     public DeckController secondPlayerDeckController;
 
@@ -29,10 +30,12 @@ public class GameController : Singleton<GameController>
 
         first = firstPlayerDeckController.transform.GetComponent<Player>();
         second = secondPlayerDeckController.transform.GetComponent<Player>();
-        first.IsMoving = true;
+        second.IsMoving = true;
 
         Generate();
         Shuffle(mainDeckController);
+
+        StartCoroutine(Deal());
     }
 
     public void Generate()
@@ -49,6 +52,7 @@ public class GameController : Singleton<GameController>
 
     public void OnCardClick(IDType id, DeckController cardOwner)
     {
+        //перевірка чи зараз хід гравця, який настиснув на карту
         Player current = cardOwner.transform.GetComponent<Player>();
         if(current != null)
         {
@@ -56,9 +60,11 @@ public class GameController : Singleton<GameController>
                 return;
         }
 
+        // визначення цільової колоди, до якої має переміститись карта
         DeckController targetDeck;
         DetermineTargetDeck(cardOwner, out targetDeck);
 
+        //
         if(targetDeck.IsEmpty() || cardOwner.owner == DeckOwner.Main)
         {
             MoveCard(cardOwner, targetDeck, id);
@@ -85,7 +91,6 @@ public class GameController : Singleton<GameController>
                     UIController.Instance.ChangeEnableStateMiniTrumpWindow(false);
             }
 
-
             if(targetDeck.GetTopCard().HasPreference(Preference.None))
                 EndMove();
         }
@@ -93,15 +98,67 @@ public class GameController : Singleton<GameController>
             Debug.Log("Card can`t be covered");
     }
 
-    private bool NeedChangeTrumpSuit(Card card, DeckController targetDeck)
+    public void GetTopCard()
     {
-        return card.HasPreference(Preference.SetMainSuit) && targetDeck.owner == DeckOwner.Working;
+        Debug.Log(workingDeckController.GetTopCard().ToString());
     }
 
     public void SetSuit(Suit suit)
     {
         trumpSuit = suit;
         EndMove();
+    }
+
+    private IEnumerator Deal()
+    {
+        int totalCount = 9; //2 * players count - 1
+
+        //time for initializing UI
+        yield return new WaitForSeconds(1f);
+
+        for(int cardCount=0; cardCount< totalCount; cardCount++)
+        {   //replace with all players iteration 
+            DeckController player = cardCount % 2 == 0 ? secondPlayerDeckController : firstPlayerDeckController;
+
+            MoveCard(mainDeckController, player, mainDeckController.GetTopCard().Identifier);
+
+            yield return new WaitForSeconds(0.2f);
+        }
+
+        MoveCard(mainDeckController, workingDeckController, mainDeckController.GetTopCard().Identifier);
+    }
+
+    private void HandlingPreference(Preference preference)
+    {
+        switch(preference)
+        {
+            case Preference.None:
+                EndMove();
+                break;
+            case Preference.Cover:
+                break;
+            case Preference.TakeTwo:
+                break;
+            case Preference.TakeOne:
+                break;
+            case Preference.SkipMove:
+                break;
+            case Preference.CoverAnyCard:
+                break;
+            case Preference.SetMainSuit:
+                break;
+            case Preference.OnAnyCard:
+                break;
+            case Preference.MultiplyScore:
+                break;
+            default:
+                break;
+        }
+    }
+
+    private bool NeedChangeTrumpSuit(Card card, DeckController targetDeck)
+    {
+        return card.HasPreference(Preference.SetMainSuit) && targetDeck.owner == DeckOwner.Working;
     }
 
     private void ShowSuits()
@@ -116,10 +173,6 @@ public class GameController : Singleton<GameController>
         second.IsMoving = !second.IsMoving;
     }
 
-    public void GetTopCard()
-    {
-        Debug.Log(workingDeckController.GetTopCard().ToString());
-    }
 
     private void MoveCard(DeckController fromDeck, DeckController toDeck, IDType id)
     {
@@ -164,7 +217,7 @@ public class GameController : Singleton<GameController>
         switch(controller.owner)
         {
             case DeckOwner.Main:
-                if(UIController.Instance.ToFirst())
+                if(first.IsMoving)
                     targetController = firstPlayerDeckController;
                 else
                     targetController = secondPlayerDeckController;

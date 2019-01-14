@@ -4,11 +4,12 @@ using UnityEngine;
 using UnityEngine.UI;
 
 public class UIController : Singleton<UIController> {
-
-    public GameObject cardPrefab;
+    
+    [SerializeField] private PrefabContainer prefabContainer;
     public GameObject TrumpSuit;
     public Image trumpSuitMini;
     public Toggle toFirst;
+
     public bool MiniTrumpSuitActive
     {
         get
@@ -70,7 +71,7 @@ public class UIController : Singleton<UIController> {
 
     public void AddCard(DeckController deckController, Card card)
     {
-        GameObject cardObject = Instantiate(cardPrefab, transform.position, Quaternion.identity, deckController.gameObject.transform);
+        GameObject cardObject = Instantiate(prefabContainer.CardPrefab, transform.position, Quaternion.identity, deckController.gameObject.transform);
 
         cardObject.name = card.cardName + " " + card.cardSuit.ToString();
         Card cardComponent = cardObject.GetComponent<Card>();

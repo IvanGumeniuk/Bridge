@@ -35,7 +35,6 @@ public class DeckController : MonoBehaviour {
             Debug.Log("No avaliable children");
             return null;
         }
-
         return transform.GetChild(transform.childCount - 1).GetComponent<Card>();
     }
 
