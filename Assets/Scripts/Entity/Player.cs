@@ -2,9 +2,17 @@
 using UnityEngine;
 public class Player : MonoBehaviour
 {
-    public int playerIndex;
+    public int playerID;
+    public int age;
     public bool IsMoving = false;
-    public string Name;// { get; set; }
-    public int Score;// { get; set; }
+    public bool isDealer = false;
+    public string Name;
+    public int Score;
+    public DeckController cards;
+
+    private void Awake()
+    {
+        cards = GetComponent<DeckController>();
+    }
 }
 

@@ -6,41 +6,55 @@ public class GameController : Singleton<GameController>
 {
     public DeckController mainDeckController;
     public DeckController workingDeckController;
+
+    public List<Player> players = new List<Player>();
+
+    private int _index;
+
+    public int CurrentTurn
+    {
+        get { return _index; }
+        set
+        {
+            if (value > players.Count - 1)
+            {
+                _index = 0;
+            }
+            else if(value < 0)
+            {
+                _index = players.Count - 1;
+            }
+            else
+            {
+                _index = value;
+            }
+        }
+    }
+
+    private int canTakeCardCount = 1;
+
     
-    public DeckController firstPlayerDeckController;
-    public DeckController secondPlayerDeckController;
-
-    private Player first;
-    private Player second;
-
-    public Deck mainDeck { get; private set; }
-
     [SerializeField]
-    private Suit trumpSuit;
+    private CardSuit trumpSuit;
 
     private void Awake()
     {
-        mainDeck = new Deck(true);
+        mainDeckController.deck = new Deck(true);
     }
 
     // Use this for initialization
     void Start()
     {
-        mainDeckController.deck = mainDeck;
-
-        first = firstPlayerDeckController.transform.GetComponent<Player>();
-        second = secondPlayerDeckController.transform.GetComponent<Player>();
-        second.IsMoving = true;
-
         Generate();
         Shuffle(mainDeckController);
 
         StartCoroutine(Deal());
     }
 
+
     public void Generate()
     {
-        UIController.Instance.InitializeCardsUI(mainDeckController, mainDeck);
+        UIController.Instance.InitializeCardsUI(mainDeckController, mainDeckController.deck);
     }
 
     public void Shuffle(DeckController deckController)
@@ -49,190 +63,122 @@ public class GameController : Singleton<GameController>
         UIController.Instance.InitializeCardsUI(deckController, deckController.GetDeck());
     }
 
-
-    public void OnCardClick(IDType id, DeckController cardOwner)
+    // Карта, на якій я натиснув
+    public void OnCardClick(IDType cardID, DeckController deckController, DeckOwner owner, int playerID)
     {
-        //перевірка чи зараз хід гравця, який настиснув на карту
-        Player current = cardOwner.transform.GetComponent<Player>();
-        if(current != null)
-        {
-            if(!current.IsMoving)
-                return;
-        }
+        Card interacted = deckController.GetCard(cardID);
+        Debug.LogFormat("{0} {1} {2}", interacted.ToString(), owner, playerID);
 
-        // визначення цільової колоди, до якої має переміститись карта
-        DeckController targetDeck;
-        DetermineTargetDeck(cardOwner, out targetDeck);
-
-        //
-        if(targetDeck.IsEmpty() || cardOwner.owner == DeckOwner.Main)
-        {
-            MoveCard(cardOwner, targetDeck, id);
-            if(NeedChangeTrumpSuit(targetDeck.GetTopCard(), targetDeck))
-            {
-                ShowSuits();
-            }
-            return;
-        }
-
-        if(CanCoverCard(cardOwner.GetCard(id), targetDeck.GetTopCard()))
-        {
-            MoveCard(cardOwner, targetDeck, id);
-
-            //changing suit
-            if(NeedChangeTrumpSuit(targetDeck.GetTopCard(), targetDeck))
-            {
-                ShowSuits();
-                return;
-            }
-            else
-            {
-                if(UIController.Instance.MiniTrumpSuitActive)
-                    UIController.Instance.ChangeEnableStateMiniTrumpWindow(false);
-            }
-
-            if(targetDeck.GetTopCard().HasPreference(Preference.None))
-                EndMove();
-        }
-        else
-            Debug.Log("Card can`t be covered");
+        HandleMove(cardID, deckController, owner, playerID);
     }
 
-    public void GetTopCard()
+    private void HandleMove(IDType cardID, DeckController deckController, DeckOwner owner, int playerID)
     {
-        Debug.Log(workingDeckController.GetTopCard().ToString());
+        // Колоди, на які я натиснув 
+        switch (owner)
+        {
+            // Мої карти
+            case DeckOwner.Player:
+                {
+
+                    break;
+                }
+            // Банк
+            case DeckOwner.MainDeck:
+                {
+                    if (canTakeCardCount != 0)
+                    {
+                        MoveCard(mainDeckController, players[CurrentTurn].cards, cardID);
+                        canTakeCardCount--;
+                    }
+
+                    if (canTakeCardCount == 0)
+                    {
+                        UIController.Instance.ChangeTurnButtonEnable = true;
+                    }
+                    break;
+                }
+            // Гральна колода
+            case DeckOwner.WorkingDeck:
+                break;
+            default:
+                break;
+        }
     }
 
-    public void SetSuit(Suit suit)
+    //Коли хтось завершив хід, треба проконтролювати карту, з якою він це зробив
+    private void HandleEntireMoveCard()
+    {
+        Card top = workingDeckController.GetTopCard();
+    }
+
+    public void NextPlayer()
+    {
+        UIController.Instance.ChangeTurnButtonEnable = false;
+        canTakeCardCount = 1;
+        CurrentTurn++;
+        HandleEntireMoveCard();
+    }
+
+    public void SetSuit(CardSuit suit)
     {
         trumpSuit = suit;
-        EndMove();
+        ChangePlayerTurn();
     }
 
     private IEnumerator Deal()
     {
-        int totalCount = 9; //2 * players count - 1
+        int totalCount = (5 * players.Count) - 1;
 
         //time for initializing UI
         yield return new WaitForSeconds(1f);
 
         for(int cardCount=0; cardCount< totalCount; cardCount++)
         {   //replace with all players iteration 
-            DeckController player = cardCount % 2 == 0 ? secondPlayerDeckController : firstPlayerDeckController;
 
-            MoveCard(mainDeckController, player, mainDeckController.GetTopCard().Identifier);
+            MoveCard(mainDeckController, players[CurrentTurn++].cards, mainDeckController.GetTopCard().Identifier);
 
-            yield return new WaitForSeconds(0.2f);
+            yield return new WaitForSeconds(0.1f);
         }
 
         MoveCard(mainDeckController, workingDeckController, mainDeckController.GetTopCard().Identifier);
     }
 
-    private void HandlingPreference(Preference preference)
+    public void ChangePlayerTurn()
     {
-        switch(preference)
-        {
-            case Preference.None:
-                EndMove();
-                break;
-            case Preference.Cover:
-                break;
-            case Preference.TakeTwo:
-                break;
-            case Preference.TakeOne:
-                break;
-            case Preference.SkipMove:
-                break;
-            case Preference.CoverAnyCard:
-                break;
-            case Preference.SetMainSuit:
-                break;
-            case Preference.OnAnyCard:
-                break;
-            case Preference.MultiplyScore:
-                break;
-            default:
-                break;
-        }
+        players[CurrentTurn].IsMoving = false;
+        CurrentTurn = CurrentTurn++;
+        players[CurrentTurn].IsMoving = true;
+        
+        UIController.Instance.ChangeTurnButtonEnable = false;
     }
-
-    private bool NeedChangeTrumpSuit(Card card, DeckController targetDeck)
-    {
-        return card.HasPreference(Preference.SetMainSuit) && targetDeck.owner == DeckOwner.Working;
-    }
-
+        
     private void ShowSuits()
     {
         UIController.Instance.ChangeEnableStateTrumpWindow(true);
         UIController.Instance.ChangeEnableStateMiniTrumpWindow(true);
     }
 
-    private void EndMove()
-    {
-        first.IsMoving = !first.IsMoving;
-        second.IsMoving = !second.IsMoving;
-    }
-
-
     private void MoveCard(DeckController fromDeck, DeckController toDeck, IDType id)
     {
-        UIController.Instance.AddCard(toDeck, fromDeck.GetCard(id));
-        toDeck.AddCard(fromDeck.GetCard(id));
+        Card toMoveCard = fromDeck.GetCard(id);
+
+        toDeck.AddCard(toMoveCard, fromDeck.currentOwner);
         fromDeck.RemoveCard(id);
+
+        UIController.Instance.AddCard(toDeck, toMoveCard);
         UIController.Instance.RemoveCard(fromDeck, id);
     }
-
-    private bool CanCoverCard(Card coverer, Card willCovered)
-    {
-        if(coverer.HasPreference(Preference.OnAnyCard))
-            return true;
-
-        if(willCovered.HasPreference(Preference.SetMainSuit))
-            return coverer.cardSuit == trumpSuit;
-
-        if(willCovered.HasPreference(Preference.CoverAnyCard))
-            return true;
-
-        if(IsSuitEqual(coverer, willCovered))
-            return true;
-
-        if(IsNameEqual(coverer, willCovered))
-            return true;
-
-        return false;
-    }
+    
 
     private bool IsSuitEqual(Card firstCard, Card secondCard)
     {
-        return firstCard.cardSuit == secondCard.cardSuit;
+        return firstCard.Suit == secondCard.Suit;
     }
 
     private bool IsNameEqual(Card firstCard, Card secondCard)
     {
-        return firstCard.cardName == secondCard.cardName;
+        return firstCard.Name == secondCard.Name;
     }
-
-    private void DetermineTargetDeck(DeckController controller, out DeckController targetController)
-    {
-        switch(controller.owner)
-        {
-            case DeckOwner.Main:
-                if(first.IsMoving)
-                    targetController = firstPlayerDeckController;
-                else
-                    targetController = secondPlayerDeckController;
-                break;
-            case DeckOwner.Player:
-                targetController = workingDeckController;
-                break;
-            case DeckOwner.Working:
-                targetController = mainDeckController;
-                break;
-            default:
-                Debug.Log("Deck controller is not setted");
-                targetController = null;
-                break;
-        }
-    }
-
+    
 }

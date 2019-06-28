@@ -1,4 +1,4 @@
-﻿public enum Suit
+﻿public enum CardSuit
 {
     Clubs,  // хрест
     Spades, // піка

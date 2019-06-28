@@ -1,4 +1,4 @@
-﻿public enum Name
+﻿public enum CardName
 {
     Six,
     Seven,

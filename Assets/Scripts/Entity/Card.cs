@@ -9,65 +9,37 @@ public class Card : MonoBehaviour
         set { idType = new IDType(value.ID); }
     }
 
-
-    [SerializeField] private Suit _suit;
-    public Suit cardSuit
+    [SerializeField] private CardSuit _suit;
+    public CardSuit Suit
     {
         get { return _suit; }
         set { _suit = value; }
     }
 
-    [SerializeField] private Name _name;
-    public Name cardName
+    [SerializeField] private CardName _name;
+    public CardName Name
     {
         get { return _name; }
         set { _name = value; }
     }
 
-    public Points cardPoints { get; set; }
-
-    [SerializeField]
-    private List<Preference> cardPreferences = new List<Preference>();
-
-    public Preference GetPreference(int index = 0)
+    [SerializeField] private CardPoints _points;
+    public CardPoints Points
     {
-        Preference res = Preference.None;
-        if(cardPreferences[index] != Preference.None)
-            res = cardPreferences[index];
-        return res;
+        get { return _points; }
+        set { _points = value; }
     }
 
-    public List<Preference> GetPreferences()
+    public Card(CardSuit cardSuit, CardName cardName, CardPoints cardPoints)
     {
-        return cardPreferences;
-    }
-
-    public bool HasPreference(Preference preference)
-    {
-        return GetPreferences().Contains(preference);
-    }
-
-    public void AddReference(Preference preference)
-    {
-        cardPreferences.Add(preference);
-    }
-    public void AddReferenceRange(List<Preference> preferences)
-    {
-        cardPreferences.AddRange(preferences);
-    }
-    
-    public Card(Suit cardSuit, Name cardName)
-    {
-        this.cardSuit = cardSuit;
-        this.cardName = cardName;
+        Suit = cardSuit;
+        Name = cardName;
+        Points = cardPoints;
     }
     
     public override string ToString()
     {
-        string stringPref = string.Empty;
-        foreach(Preference pref in cardPreferences)
-            stringPref += pref.ToString() + " ";
-        return string.Format("{0} {1} {2}", cardName.ToString(), cardSuit.ToString(), stringPref);
+        return string.Format("{0} {1} {2}", Name.ToString(), Suit.ToString(), Points.ToString());
     }
 }
 

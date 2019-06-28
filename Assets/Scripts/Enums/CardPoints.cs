@@ -1,4 +1,4 @@
-﻿public enum Points
+﻿public enum CardPoints
 {
     Zero = 0,
     Ten = 10,

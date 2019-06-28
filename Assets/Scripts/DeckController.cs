@@ -4,11 +4,14 @@ using UnityEngine;
 public class DeckController : MonoBehaviour {
 
     public Deck deck { get; set; }
-    public DeckOwner owner;
+    public DeckOwner currentOwner;
+    public DeckOwner previousOwner;
+    public Player player; 
 
     private void Awake()
     {
         deck = new Deck(false);
+        player = GetComponent<Player>();
     }
 
     public Deck GetDeck()
@@ -49,6 +52,12 @@ public class DeckController : MonoBehaviour {
         deck.AddCard(card.Identifier, card);
     }
 
+    public void AddCard(Card card, DeckOwner previous)
+    {
+        previousOwner = previous;
+        deck.AddCard(card.Identifier, card);
+    }
+
     public void RemoveCard(IDType id)
     {
         if(deck.GetCards().ContainsKey(id))
@@ -61,9 +70,30 @@ public class DeckController : MonoBehaviour {
         }
     }
 
-    public void OnCardClick(IDType id)
+    public void OnCardClick(IDType cardID)
     { 
-        GameController.Instance.OnCardClick(id, this);
+        GameController.Instance.OnCardClick(cardID, this, currentOwner, GetID());
+    }
+
+    private int GetID()
+    {
+        int errorID = -1;
+        switch (currentOwner)
+        {
+            case DeckOwner.Player:
+                if(player == null)
+                {
+                    Debug.Log("Player == null when owner == DeckOwner.Player");
+                    return errorID;
+                }
+                return player.playerID;
+            case DeckOwner.MainDeck:
+                return 1000;
+            case DeckOwner.WorkingDeck:
+                return 1001;
+            default:
+                return errorID;
+        }
     }
 
     public bool IsEmpty()
@@ -71,4 +101,8 @@ public class DeckController : MonoBehaviour {
         return deck.GetCards().Count == 0;
     }
 
+    public int CardsCount
+    {
+        get { return deck.GetCards().Count; }
+    }
 }

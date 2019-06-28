@@ -8,7 +8,13 @@ public class UIController : Singleton<UIController> {
     [SerializeField] private PrefabContainer prefabContainer;
     public GameObject TrumpSuit;
     public Image trumpSuitMini;
-    public Toggle toFirst;
+    [SerializeField] private GameObject ChangePlayerMovingButton;
+
+    public bool ChangeTurnButtonEnable
+    {
+        get { return ChangePlayerMovingButton.activeSelf; }
+        set { ChangePlayerMovingButton.SetActive(value); }
+    }
 
     public bool MiniTrumpSuitActive
     {
@@ -36,8 +42,8 @@ public class UIController : Singleton<UIController> {
 
     public void OnTrumpSuitChanged(int suitIndex)
     {
-        GameController.Instance.SetSuit((Suit)suitIndex);
-        trumpSuitMini.sprite = Resources.Load<Sprite>("Suits/" + (Suit)suitIndex);
+        GameController.Instance.SetSuit((CardSuit)suitIndex);
+        trumpSuitMini.sprite = Resources.Load<Sprite>("Suits/" + (CardSuit)suitIndex);
 
         ChangeEnableStateTrumpWindow(false);
     }
@@ -73,18 +79,18 @@ public class UIController : Singleton<UIController> {
     {
         GameObject cardObject = Instantiate(prefabContainer.CardPrefab, transform.position, Quaternion.identity, deckController.gameObject.transform);
 
-        cardObject.name = card.cardName + " " + card.cardSuit.ToString();
+        cardObject.name = card.Name + " " + card.Suit.ToString();
         Card cardComponent = cardObject.GetComponent<Card>();
-        cardComponent.cardName = card.cardName;
-        cardComponent.cardSuit = card.cardSuit;
+        cardComponent.Name = card.Name;
+        cardComponent.Suit = card.Suit;
+        cardComponent.Points = card.Points;
         cardComponent.Identifier = card.Identifier;
-        cardComponent.AddReferenceRange(card.GetPreferences());
-        cardObject.GetComponent<Image>().sprite = Resources.Load<Sprite>("Cards/" + card.cardName + card.cardSuit.ToString());
+        cardObject.GetComponent<Image>().sprite = Resources.Load<Sprite>("Cards/" + card.Name + card.Suit.ToString());
         cardObject.GetComponent<CardIDObserver>().InitializeDeckController(deckController);
     }
 
-    public bool ToFirst()
+    public void OnNextButton()
     {
-        return toFirst.isOn;
+        GameController.Instance.NextPlayer();
     }
 }
